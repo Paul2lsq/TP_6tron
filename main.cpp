@@ -1,17 +1,21 @@
 /*
- * Copyright (c) 2022, CATIE
+ * Copyright (c) 2006-2020 Arm Limited and affiliates.
  * SPDX-License-Identifier: Apache-2.0
  */
+
 #include "mbed.h"
 
-namespace {
-#define PERIOD_MS 2000ms
-}
+DigitalOut myled(LED1);
 
 int main()
 {
-    while (true) {
-        printf("Alive! \n");
-        ThisThread::sleep_for(PERIOD_MS / 2);
+    while (1) {
+        myled.write(1);        
+        printf("myled = %d \n\r", (uint8_t)myled);
+        ThisThread::sleep_for(500);
+
+        myled.write(0);  
+        printf("myled = %d \n\r", myled.read());
+        ThisThread::sleep_for(500);
     }
 }
