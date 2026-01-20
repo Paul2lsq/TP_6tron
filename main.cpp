@@ -98,6 +98,7 @@ int main()
 ///////// et changement fréquence par bouton /////////
 ///////////////////////////////////////////////////////
 
+/*
 #include "mbed.h"
 
 Ticker flipper;
@@ -129,7 +130,34 @@ int main()
         ThisThread::sleep_for(200);
     }
 }
+*/
 
 ///////////////////////////////////////////////////////
 ///////// PARTIE 3 :                          /////////
 ///////////////////////////////////////////////////////
+
+#include "mbed.h"
+#include "bme280.h"
+using namespace sixtron;
+
+I2C i2c(I2C1_SDA, I2C1_SCL);
+BME280 sensor(&i2c);
+
+int main() {
+    sensor.initialize();
+
+    sensor.set_sampling();
+
+    while (1) {
+
+    bme280_environment_t env_data;
+
+    sensor.read_env_data(env_data);
+
+    printf("Temperature: %.2f 0 C | ", env_data.temperature);
+    printf("Humidity: %.2f %% | ", env_data.humidity);
+    printf("Pressure: %.2f hPa\n", env_data.pressure);
+
+    ThisThread::sleep_for(1000ms);
+    }
+}
