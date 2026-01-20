@@ -29,7 +29,7 @@ int main()
 /////// PARTIE 2 : bouton, interuption et timer ///////
 ///////////////////////////////////////////////////////
 
-
+/*
 #include "mbed.h"
 
 InterruptIn button(BUTTON1);
@@ -65,8 +65,71 @@ int main()
         //printf("Hello World! \n");
     }
 }
-
+*/
 
 ///////////////////////////////////////////////////////
-///////// PARTIE 3 : contrôle LED par Ticker /////////
+///////// PARTIE 2 : contrôle LED par Ticker /////////
+///////////////////////////////////////////////////////
+
+/*
+#include "mbed.h"
+
+Ticker flipper;
+DigitalOut led1(LED1);
+
+void flip()
+{
+    led1 = !led1;
+}
+
+int main()
+{
+    led1 = 1;
+    flipper.attach(&flip, 2.0); // 2 secondes
+
+    while (1) {
+        ThisThread::sleep_for(200);
+    }
+}
+*/
+
+///////////////////////////////////////////////////////
+///////// PARTIE 2 : contrôle LED par Ticker /////////
+///////// et changement fréquence par bouton /////////
+///////////////////////////////////////////////////////
+
+#include "mbed.h"
+
+Ticker flipper;
+DigitalOut led1(LED1);
+InterruptIn button(BUTTON1);
+
+int i = 0;
+float freq[5] = {2.0, 1.5, 1.0, 0.5, 0.2};
+
+void flip()
+{
+    led1 = !led1;
+}
+
+void change_interval()
+{
+    i = (i+1) % 5;
+    flipper.detach();
+    flipper.attach(&flip, freq[i]);    
+}
+
+int main()
+{
+    led1 = 1;
+    flipper.attach(&flip, freq[i]);
+    button.fall(&change_interval);
+
+    while (1) {
+        ThisThread::sleep_for(200);
+    }
+}
+
+///////////////////////////////////////////////////////
+///////// PARTIE 3 :                          /////////
 ///////////////////////////////////////////////////////
