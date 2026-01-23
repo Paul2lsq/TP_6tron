@@ -65,7 +65,7 @@ int main()
         //printf("Hello World! \n");
     }
 }
-*/
+/*
 
 ///////////////////////////////////////////////////////
 ///////// PARTIE 2 : contrôle LED par Ticker /////////
@@ -133,9 +133,9 @@ int main()
 */
 
 ///////////////////////////////////////////////////////
-///////// PARTIE 3 :                          /////////
+////// PARTIE 3 : Température, humidité, pression /////
 ///////////////////////////////////////////////////////
-
+/*
 #include "mbed.h"
 #include "bme280.h"
 using namespace sixtron;
@@ -161,3 +161,133 @@ int main() {
     ThisThread::sleep_for(1000ms);
     }
 }
+*/
+
+///////////////////////////////////////////////////////
+//////////////// PARTIE 4 : Ping Pong /////////////////
+///////////////////////////////////////////////////////
+/*
+#include "mbed.h"
+
+DigitalOut led1(LED1);
+
+Mutex stdio_mutex;
+
+Thread thread_ping;
+Thread thread_pong;
+
+void ping()
+{
+    int cpt = 0;
+    while (cpt < 100) {
+        stdio_mutex.lock();
+        printf("PUFF ");
+        cpt ++;
+        stdio_mutex.unlock();
+    }
+}
+
+void pong()
+{
+    int cpt = 0;
+    while (cpt < 100) {
+        stdio_mutex.lock();
+        printf("PAFF\n");
+        cpt ++;
+        stdio_mutex.unlock();
+    }
+}
+
+int main()
+{
+    thread_ping.start(ping);
+    thread_pong.start(pong);
+    
+    while (true) {
+        stdio_mutex.lock();
+        led1 = !led1;
+        printf("Alive!\n");
+        ThisThread::sleep_for(200);
+        stdio_mutex.unlock();
+    }
+}
+*/
+
+///////////////////////////////////////////////////////
+////////// PARTIE 4 : Tâches station météo ////////////
+///////////////////////////////////////////////////////
+
+#include "mbed.h"
+#include "bme280.h"
+using namespace sixtron;
+
+I2C i2c(I2C1_SDA, I2C1_SCL);
+BME280 sensor(&i2c);
+
+DigitalOut led1(LED1);
+InterruptIn button(BUTTON1);
+
+Mutex stdio_mutex;
+
+EventQueue queue(32 * EVENTS_EVENT_SIZE);
+Thread queue_thread;
+
+Ticker tick_temp_hum;
+Ticker tick_led;
+
+void task_temp_hum()
+{
+    bme280_environment_t env;
+    sensor.read_env_data(env);
+
+    stdio_mutex.lock();
+    printf("Temperature: %.2f C | Humidity: %.2f %%\n", env.temperature, env.humidity);
+    stdio_mutex.unlock();
+}
+
+void task_pressure()
+{
+    bme280_environment_t env;
+    sensor.read_env_data(env);
+
+    stdio_mutex.lock();
+    printf("Pressure: %.2f hPa\n", env.pressure / 100.0f);
+    stdio_mutex.unlock();
+}
+
+void task_toggle_led()
+{
+    led1 = !led1;
+}
+
+void on_tick_temp_hum()
+{
+    queue.call(task_temp_hum);
+}
+
+void on_tick_led()
+{
+    queue.call(task_toggle_led);
+}
+
+void on_button_rise()
+{
+    queue.call(task_pressure);
+}
+
+int main()
+{
+    sensor.initialize();
+    sensor.set_sampling(); 
+    queue_thread.start(callback(&queue, &EventQueue::dispatch_forever));
+
+    button.rise(on_button_rise);
+
+    tick_temp_hum.attach(on_tick_temp_hum, 2s);
+    tick_led.attach(on_tick_led, 5s);
+
+    while (true) {
+        ThisThread::sleep_for(1s);
+    }
+}
+
