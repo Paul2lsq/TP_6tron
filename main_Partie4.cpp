@@ -37,7 +37,7 @@ NetworkInterface *network;
 MQTTClient *client;
 
 // MQTT
-const char* hostname = "io.adafruit.com";
+const char* hostname = "test.mosquitto.org";
 int port = 1883;
 
 // Error code
@@ -170,13 +170,11 @@ int main()
         return rc;
     }
 
-    MQTTPacket_connectData data = MQTTPacket_connectData_initializer;
+        MQTTPacket_connectData data = MQTTPacket_connectData_initializer;
     data.MQTTVersion = 4;
     data.keepAliveInterval = 25;
-    // data.clientID.cstring = MQTT_CLIENT_ID; // À SUPPRIMER
-    data.username.cstring = "Paul2lsq";
-    data.password.cstring = "aio_vNbT21RyUuypAgRa9mEnNkZYZIUD";
-    
+    data.clientID.cstring = MQTT_CLIENT_ID;
+
     if (client->connect(data) != 0){
         printf("Connection to MQTT Broker Failed\n");
     }
